@@ -95,6 +95,7 @@ minimapcamera.width = 12*minimapscale+"px";
 minimapcamera.height = 6*minimapscale+"px";
 
 var floorBody = null;
+var boxBody = null;
 
 function debug(str, clear) {
   if(clear) {
@@ -592,6 +593,7 @@ function cw_drawScreen() {
   ctx.translate(200-(camera_x*zoom), 200+(camera_y*zoom));
   ctx.scale(zoom, -zoom);
   cw_drawFloor(floorBody);
+  cw_drawFloor(boxBody);
   //cw_drawCars();
   ctx.restore();
 }
@@ -928,6 +930,7 @@ function cw_init() {
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
+  boxBody = cw_createBox();
   cw_runningInterval = setInterval(simulationStep, Math.round(1000/box2dfps));
   cw_drawInterval    = setInterval(cw_drawScreen,  Math.round(1000/screenfps));
 }

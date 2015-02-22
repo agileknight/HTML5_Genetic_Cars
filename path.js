@@ -22,6 +22,31 @@ function cw_createFloor() {
 	 return body
 }
 
+function cw_createBox() {
+  	var boxPosition = new b2Vec2(0,2);
+	bodyDef = new b2BodyDef();
+	bodyDef.position.Set(boxPosition.x, boxPosition.y)
+	bodyDef.type = b2Body.b2_dynamicBody;
+	
+	 var body = world.CreateBody(bodyDef);
+     fixDef = new b2FixtureDef();
+     fixDef.shape = new b2PolygonShape();
+	 fixDef.density = 5;
+     fixDef.friction = 10;
+     fixDef.restitution = 0.9;
+	 
+     var coords = new Array();
+     coords.push(new b2Vec2(0,0));
+     coords.push(new b2Vec2(0,-0.5));
+     coords.push(new b2Vec2(1,-0.5));
+     coords.push(new b2Vec2(1,0));
+
+     fixDef.shape.SetAsArray(coords);
+     body.CreateFixture(fixDef);
+	 
+	 return body
+}
+
 
 function cw_createFloorTile(position, angle) {
 	
