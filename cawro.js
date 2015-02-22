@@ -94,6 +94,8 @@ leaderPosition.y = 0;
 minimapcamera.width = 12*minimapscale+"px";
 minimapcamera.height = 6*minimapscale+"px";
 
+var floorBody = null;
+
 function debug(str, clear) {
   if(clear) {
     debugbox.innerHTML = "";
@@ -340,20 +342,8 @@ function cw_createRandomCar() {
 /* ==== Generation ========================================================= */
 
 function cw_generationZero() {
-  for(var k = 0; k < generationSize; k++) {
-    var car_def = cw_createRandomCar();
-    car_def.index = k;
-    cw_carGeneration.push(car_def);
-  }
-  gen_counter = 0;
-  cw_deadCars = 0;
-  leaderPosition = new Object();
-  leaderPosition.x = 0;
-  leaderPosition.y = 0;
   cw_materializeGeneration();
-  document.getElementById("generation").innerHTML = "generation 0";
-  document.getElementById("population").innerHTML = "cars alive: "+generationSize;
-  ghost = ghost_create_ghost();
+
 }
 
 function cw_materializeGeneration() {
@@ -601,9 +591,8 @@ function cw_drawScreen() {
   cw_setCameraPosition();
   ctx.translate(200-(camera_x*zoom), 200+(camera_y*zoom));
   ctx.scale(zoom, -zoom);
-  cw_drawFloor();
-  ghost_draw_frame(ctx, ghost);
-  cw_drawCars();
+  cw_drawFloor(floorBody);
+  //cw_drawCars();
   ctx.restore();
 }
 
@@ -782,36 +771,6 @@ function cw_drawMiniMap() {
 
 function simulationStep() {
   world.Step(1/box2dfps, 20, 20);
-  ghost_move_frame(ghost);
-  for(var k = 0; k < generationSize; k++) {
-    if(!cw_carArray[k].alive) {
-      continue;
-    }
-    ghost_add_replay_frame(cw_carArray[k].replay, cw_carArray[k]);
-    cw_carArray[k].frames++;
-    position = cw_carArray[k].getPosition();
-    cw_carArray[k].minimapmarker.style.left = Math.round((position.x+5) * minimapscale) + "px";
-    cw_carArray[k].healthBar.width = Math.round((cw_carArray[k].health/max_car_health)*100) + "%";
-    if(cw_carArray[k].checkDeath()) {
-      cw_carArray[k].kill();
-      cw_deadCars++;
-      document.getElementById("population").innerHTML = "cars alive: " + (generationSize-cw_deadCars);
-      cw_carArray[k].minimapmarker.style.borderLeft = "1px solid #ccc";
-      if(cw_deadCars >= generationSize) {
-        cw_newRound();
-      }
-      if(leaderPosition.leader == k) {
-        // leader is dead, find new leader
-        cw_findLeader();
-      }
-      continue;
-    }
-    if(position.x > leaderPosition.x) {
-      leaderPosition = position;
-      leaderPosition.leader = k;
-    }
-  }
-  showDistance(Math.round(leaderPosition.x*100)/100, Math.round(leaderPosition.y*100)/100);
 }
 
 function cw_findLeader() {
@@ -968,8 +927,7 @@ function cw_toggleGhostReplay(button) {
 function cw_init() {
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
-  cw_createFloor();
-  cw_generationZero();
+  floorBody = cw_createFloor();
   cw_runningInterval = setInterval(simulationStep, Math.round(1000/box2dfps));
   cw_drawInterval    = setInterval(cw_drawScreen,  Math.round(1000/screenfps));
 }
