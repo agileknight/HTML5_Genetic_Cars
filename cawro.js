@@ -966,30 +966,9 @@ function cw_toggleGhostReplay(button) {
 
 // initial stuff, only called once (hopefully)
 function cw_init() {
-  // clone silver dot and health bar
-  var mmm  = document.getElementsByName('minimapmarker')[0];
-  var hbar = document.getElementsByName('healthbar')[0];
-
-  for(var k = 0; k < generationSize; k++) {
-
-    // minimap markers
-    var newbar = mmm.cloneNode(true);
-    newbar.id = "bar"+k;
-    newbar.style.paddingTop = k*9+"px";
-    minimapholder.appendChild(newbar);
-
-    // health bars
-    var newhealth = hbar.cloneNode(true);
-    newhealth.getElementsByTagName("DIV")[0].id = "health"+k;
-    newhealth.car_index = k;
-    document.getElementById("health").appendChild(newhealth);
-  }
-  mmm.parentNode.removeChild(mmm);
-  hbar.parentNode.removeChild(hbar);
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   cw_createFloor();
-  cw_drawMiniMap();
   cw_generationZero();
   cw_runningInterval = setInterval(simulationStep, Math.round(1000/box2dfps));
   cw_drawInterval    = setInterval(cw_drawScreen,  Math.round(1000/screenfps));
