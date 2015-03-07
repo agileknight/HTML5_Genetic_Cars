@@ -18,18 +18,6 @@ var cameraspeed = 0.05;
 var camera_y = 0;
 var camera_x = 0;
 var camera_target = -1; // which car should we follow? -1 = leader
-var minimapcamera = document.getElementById("minimapcamera").style;
-
-var graphcanvas = document.getElementById("graphcanvas");
-var graphctx = graphcanvas.getContext("2d");
-var graphheight = 250;
-var graphwidth = 400;
-
-var minimapcanvas = document.getElementById("minimap");
-var minimapctx = minimapcanvas.getContext("2d");
-var minimapscale = 3;
-var minimapfogdistance = 0;
-var fogdistance = document.getElementById("minimapfog").style;
 
 var generationSize = 20;
 var cw_carArray = new Array();
@@ -91,9 +79,6 @@ var leaderPosition = new Object();
 leaderPosition.x = 0;
 leaderPosition.y = 0;
 
-minimapcamera.width = 12*minimapscale+"px";
-minimapcamera.height = 6*minimapscale+"px";
-
 var floorBody = null;
 var carBody = null;
 var money = null;
@@ -149,7 +134,7 @@ var gameStates = {
   },
   score: {
      onEnter: function() {
-      if (carBody.getPosition().y < 4.0) {
+      if (carBody.getPosition().y < -4.0) {
         if (carBody.getPosition().x < -1.0 && bet == 'left') {
             money += 2000;
         }
@@ -641,9 +626,8 @@ function cw_setEliteSize(clones) {
 function cw_drawScreen() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.save();
-  cw_setCameraPosition();
-  ctx.translate(200-(camera_x*zoom), 200+(camera_y*zoom));
-  ctx.scale(zoom, -zoom);
+  ctx.translate(400, 200);
+  ctx.scale(1.5*zoom, -zoom);
   cw_drawFloor(floorBody);
   //cw_drawFloor(boxBody);
   cw_drawCar(carBody);
@@ -1025,35 +1009,6 @@ function relMouseCoords(event){
     return {x:canvasX, y:canvasY}
 }
 HTMLDivElement.prototype.relMouseCoords = relMouseCoords;
-minimapholder.onclick = function(event){
-  var coords = minimapholder.relMouseCoords(event);
-  var closest = { 
-    index: 0,
-    dist: Math.abs(((cw_carArray[0].getPosition().x + 6) * minimapscale) - coords.x),
-    x: cw_carArray[0].getPosition().x
-  }
-  
-  var maxX = 0;
-  for (var i = 0; i < cw_carArray.length; i++){
-    if (!cw_carArray[i].alive){
-      continue;
-    }
-    var pos = cw_carArray[i].getPosition();
-    var dist = Math.abs(((pos.x + 6) * minimapscale) - coords.x);
-    if (dist < closest.dist){
-      closest.index = i;
-      closest.dist = dist;
-      closest.x = pos.x;
-    }
-    maxX = Math.max(pos.x, maxX);
-  }
-  
-  if (closest.x == maxX){ // focus on leader again
-    cw_setCameraTarget(-1);
-  } else {
-    cw_setCameraTarget(closest.index);
-  }
-}
 
 cw_init();
 
