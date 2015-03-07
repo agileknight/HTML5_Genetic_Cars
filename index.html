@@ -10,10 +10,22 @@
         height: 400px;
         border: 1px solid black;
       }
+      #moneyContainer {
+        font-size: 4em;
+        width: 600px;
+        display: none;
+      }
+       #maxMoneyContainer {
+        font-size: 4em;
+        width: 600px;
+        display: none;
+      }
     </style>
   </head>
   <body>
     <canvas id="mainbox" width="800" height="400"></canvas>
+    <div id="moneyContainer"><span id="money">amount</span>$</div>
+    <div id="maxMoneyContainer">highscore: <span id="maxMoney">amount</span>$</div>
     <script src="lib/jquery-1.11.2.min.js"></script>
     <script src="lib/jquery-ui-1.11.3/jquery-ui.min.js"></script>
     <script src="lib/seedrandom.js"></script>

@@ -82,11 +82,16 @@ leaderPosition.y = 0;
 var floorBody = null;
 var carBody = null;
 var money = null;
+var maxMoney = null;
 var bet = null;
 var gameStates = {
   init: {
     onEnter: function() {
       money = 2000;
+      maxMoney = money;
+      ui_hideMoney()
+      ui_updateMoney()
+      ui_effectInitMoney()
       changeToGameState(gameStates.showCar)
     }
   },
@@ -134,26 +139,42 @@ var gameStates = {
   },
   score: {
      onEnter: function() {
+      var gainedMoney = false;
       if (carBody.getPosition().y < -4.0) {
         if (carBody.getPosition().x < -1.0 && bet == 'left') {
+          gainedMoney = true;
             money += 2000;
         }
         if (carBody.getPosition().x > 1.0 && bet == 'right') {
+          gainedMoney = true;
             money += 1000;
         }
       } else {
         if (bet == 'platform') {
+          gainedMoney = true;
           money += 500;
         }
       }
-      alert("" + money);
-    },
-    onKeydown: function(event) {
-      if (event.which == $.ui.keyCode.SPACE) {
-          changeToGameState(gameStates.showCar)
+      ui_updateMoney();
+      if (gainedMoney) {
+        ui_effectGainMoney();
+      } else {
+        ui_effectLoseMoney();
       }
+      
+      if (money < 0) {
+          changeToGameState(gameStates.end)
+      } else {
+       changeToGameState(gameStates.showCar)
+     }
     }
+  },
+  end: {
+    onEnter: function() {
+     alert("Out of money. Highscore: " + maxMoney + "$")
+     changeToGameState(gameStates.init)
   }
+}
 };
 var curGameState = null;
 
@@ -162,6 +183,37 @@ function changeToGameState(state) {
   if (state.onEnter) {
     state.onEnter()
   }
+}
+
+function ui_hideMoney() {
+  $("#moneyContainer").hide();
+  $("#maxMoneyContainer").hide();
+}
+
+function ui_updateMoney() {
+  if (money > maxMoney) {
+    maxMoney = money;
+  }
+  $("#money").html(money);
+  $("#maxMoney").html(maxMoney);
+}
+
+function ui_effectInitMoney(effect) {
+  var cont = $("#moneyContainer");
+  cont.show();
+  cont.effect("slide", {}, 500, null);
+
+  var cont2 = $("#maxMoneyContainer");
+  cont2.show();
+  cont2.effect("slide", {}, 500, null);
+}
+
+function ui_effectGainMoney(effect) {
+  $("#moneyContainer").effect("highlight", {}, 500, null);
+}
+
+function ui_effectLoseMoney(effect) {
+  $("#moneyContainer").effect("highlight", {color: "#ff0000"}, 500, null).dequeue().effect("shake", {}, 500, null);
 }
 
 function debug(str, clear) {
