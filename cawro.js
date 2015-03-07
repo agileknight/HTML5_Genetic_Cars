@@ -96,8 +96,16 @@ minimapcamera.height = 6*minimapscale+"px";
 
 var floorBody = null;
 var carBody = null;
+var money = null;
+var bet = null;
 var gameStates = {
   init: {
+    onEnter: function() {
+      money = 2000;
+      changeToGameState(gameStates.showCar)
+    }
+  },
+  showCar: {
     onEnter: function() {
       if (carBody) {
         carBody.kill()
@@ -109,31 +117,56 @@ var gameStates = {
     onKeydown: function(event) {
       var didBet = false
       if (event.which == $.ui.keyCode.LEFT) {
+        bet = 'left';
+        money -= 1000;
           didBet = true
       }
       if (event.which == $.ui.keyCode.RIGHT) {
+        bet = 'right';
+        money -= 500;
           didBet = true
       }
       if (event.which == $.ui.keyCode.DOWN) {
+        bet = 'platform';
+        money -= 250;
           didBet = true
       }
 
       if (didBet) {
         changeToGameState(gameStates.simulation)
       }
-    },
-    simulationAlive: function() {
-      return false;
     }
   },
   simulation: {
     afterSimulationStep: function() {
         if (carBody.checkDeath()) {
-          changeToGameState(gameStates.init)
+          changeToGameState(gameStates.score)
         }
     },
      simulationAlive: function() {
       return true;
+    }
+  },
+  score: {
+     onEnter: function() {
+      if (carBody.getPosition().y < 4.0) {
+        if (carBody.getPosition().x < -1.0 && bet == 'left') {
+            money += 2000;
+        }
+        if (carBody.getPosition().x > 1.0 && bet == 'right') {
+            money += 1000;
+        }
+      } else {
+        if (bet == 'platform') {
+          money += 500;
+        }
+      }
+      alert("" + money);
+    },
+    onKeydown: function(event) {
+      if (event.which == $.ui.keyCode.SPACE) {
+          changeToGameState(gameStates.showCar)
+      }
     }
   }
 };
@@ -657,6 +690,9 @@ function cw_drawGhostReplay() {
 
 
 function cw_drawCar(carBody) {
+  if (!carBody) {
+    return
+  }
     myCar = carBody
     if(!myCar.alive) {
       return;
