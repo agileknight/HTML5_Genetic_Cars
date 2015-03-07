@@ -96,6 +96,23 @@ minimapcamera.height = 6*minimapscale+"px";
 
 var floorBody = null;
 var carBody = null;
+var gameStates = {
+  init: {
+    onEnter: function() {
+      cw_init();
+      forceSimulationStep();
+    },
+    simulationAlive: function() {
+      return false;
+    }
+  }
+};
+var curGameState = null;
+
+function changeToGameState(state) {
+  curGameState = state
+  state.onEnter()
+}
 
 function debug(str, clear) {
   if(clear) {
@@ -753,6 +770,12 @@ function cw_drawMiniMap() {
 
 
 function simulationStep() {
+  if (curGameState.simulationAlive()) {
+    forceSimulationStep();
+  }
+}
+
+function forceSimulationStep() {
   world.Step(1/box2dfps, 20, 20);
 }
 
@@ -966,4 +989,4 @@ minimapholder.onclick = function(event){
   }
 }
 
-cw_init();
+changeToGameState(gameStates.init)
