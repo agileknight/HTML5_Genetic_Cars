@@ -95,7 +95,7 @@ minimapcamera.width = 12*minimapscale+"px";
 minimapcamera.height = 6*minimapscale+"px";
 
 var floorBody = null;
-var boxBody = null;
+var carBody = null;
 
 function debug(str, clear) {
   if(clear) {
@@ -116,7 +116,7 @@ function showDistance(distance, height) {
 /* ========================================================================= */
 /* === Car ================================================================= */
 var cw_Car = function() {
-  this.__constructor.apply(this, arguments);
+  this.__constructor.apply(this, arguments)
 }
 
 cw_Car.prototype.chassis = null;
@@ -133,21 +133,7 @@ cw_Car.prototype.__constructor = function(car_def) {
   this.car_def = car_def
   this.alive = true;
   this.is_elite = car_def.is_elite;
-  this.healthBar = document.getElementById("health"+car_def.index).style;
-  this.healthBarText = document.getElementById("health"+car_def.index).nextSibling.nextSibling;
-  this.healthBarText.innerHTML = car_def.index;
-  this.minimapmarker = document.getElementById("bar"+car_def.index);
-
-  if(this.is_elite) {
-    this.healthBar.backgroundColor = "#44c";
-    this.minimapmarker.style.borderLeft = "1px solid #44c";
-    this.minimapmarker.innerHTML = car_def.index;
-  } else {
-    this.healthBar.backgroundColor = "#c44";
-    this.minimapmarker.style.borderLeft = "1px solid #c44";
-    this.minimapmarker.innerHTML = car_def.index;
-  }
-
+ 
   this.chassis = cw_createChassis(car_def.vertex_list, car_def.chassis_density);
   
   this.wheels = [];
@@ -177,9 +163,6 @@ cw_Car.prototype.__constructor = function(car_def) {
     joint_def.bodyB = this.wheels[i];
     var joint = world.CreateJoint(joint_def);
   }
-  
-  this.replay = ghost_create_replay();
-  ghost_add_replay_frame(this.replay, this);
 }
 
 cw_Car.prototype.getPosition = function() {
@@ -593,8 +576,8 @@ function cw_drawScreen() {
   ctx.translate(200-(camera_x*zoom), 200+(camera_y*zoom));
   ctx.scale(zoom, -zoom);
   cw_drawFloor(floorBody);
-  cw_drawFloor(boxBody);
-  //cw_drawCars();
+  //cw_drawFloor(boxBody);
+  cw_drawCar(carBody);
   ctx.restore();
 }
 
@@ -637,17 +620,16 @@ function cw_drawGhostReplay() {
 }
 
 
-function cw_drawCars() {
-  for(var k = (cw_carArray.length-1); k >= 0; k--) {
-    myCar = cw_carArray[k];
+function cw_drawCar(carBody) {
+    myCar = carBody
     if(!myCar.alive) {
-      continue;
+      return;
     }
     myCarPos = myCar.getPosition();
 
     if(myCarPos.x < (camera_x - 5)) {
       // too far behind, don't draw
-      continue;
+      return;
     }
 
     ctx.strokeStyle = "#444";
@@ -681,7 +663,6 @@ function cw_drawCars() {
     }
     ctx.fill();
     ctx.stroke();
-  }
 }
 
 function toggleDisplay() {
@@ -930,7 +911,8 @@ function cw_init() {
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
-  boxBody = cw_createBox();
+  carDef = cw_createRandomCar()
+  carBody = new cw_Car(carDef)
   cw_runningInterval = setInterval(simulationStep, Math.round(1000/box2dfps));
   cw_drawInterval    = setInterval(cw_drawScreen,  Math.round(1000/screenfps));
 }
@@ -939,7 +921,7 @@ function relMouseCoords(event){
     var totalOffsetX = 0;
     var totalOffsetY = 0;
     var canvasX = 0;
-    var canvasY = 0;
+    var canvasY = 0;ne
     var currentElement = this;
 
     do{
