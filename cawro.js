@@ -102,6 +102,22 @@ var gameStates = {
       cw_init();
       forceSimulationStep();
     },
+    onKeydown: function(event) {
+      var didBet = false
+      if (event.which == $.ui.keyCode.LEFT) {
+          didBet = true
+      }
+      if (event.which == $.ui.keyCode.RIGHT) {
+          didBet = true
+      }
+      if (event.which == $.ui.keyCode.DOWN) {
+          didBet = true
+      }
+
+      if (didBet) {
+        changeToGameState(gameStates.init)
+      }
+    },
     simulationAlive: function() {
       return false;
     }
@@ -989,4 +1005,10 @@ minimapholder.onclick = function(event){
   }
 }
 
-changeToGameState(gameStates.init)
+changeToGameState(gameStates.init);
+$(document.body).keydown(function(event) {
+  curGameState.onKeydown(event)
+  return false;
+});
+
+
