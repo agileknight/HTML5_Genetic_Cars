@@ -99,7 +99,11 @@ var carBody = null;
 var gameStates = {
   init: {
     onEnter: function() {
-      cw_init();
+      if (carBody) {
+        carBody.kill()
+      }
+      carDef = cw_createRandomCar()
+      carBody = new cw_Car(carDef)
       forceSimulationStep();
     },
     onKeydown: function(event) {
@@ -123,6 +127,11 @@ var gameStates = {
     }
   },
   simulation: {
+    afterSimulationStep: function() {
+        if (carBody.checkDeath()) {
+          changeToGameState(gameStates.init)
+        }
+    },
      simulationAlive: function() {
       return true;
     }
@@ -218,32 +227,19 @@ cw_Car.prototype.draw = function() {
 }
 
 cw_Car.prototype.kill = function() {
-  var avgspeed = (this.maxPosition / this.frames) * box2dfps;
-  var position = this.maxPosition;
-  var score = position + avgspeed;
-  ghost_compare_to_replay(this.replay, ghost, score);
-  cw_carScores.push({ car_def:this.car_def, v:score, s: avgspeed, x:position, y:this.maxPositiony, y2:this.minPositiony });
   world.DestroyBody(this.chassis);
   
   for (var i = 0; i < this.wheels.length; i++){
     world.DestroyBody(this.wheels[i]);
   }
   this.alive = false;
-  
-  // refocus camera to leader on death
-  if (camera_target == this.car_def.index){
-    cw_setCameraTarget(-1);
-  }
 }
 
 cw_Car.prototype.checkDeath = function() {
   // check health
   var position = this.getPosition();
-  if(position.y > this.maxPositiony) {
-    this.maxPositiony = position.y;
-  }
-  if(position .y < this.minPositiony) {
-    this.minPositiony = position.y;
+  if(position .y < -20.0) {
+    return true
   }
   if(position.x > this.maxPosition + 0.02) {
     this.health = max_car_health;
@@ -257,11 +253,11 @@ cw_Car.prototype.checkDeath = function() {
     }
     this.health--;
     if(this.health <= 0) {
-      this.healthBarText.innerHTML = "&#8708;";
-      this.healthBar.width = "0";
       return true;
     }
   }
+
+  return false
 }
 
 function cw_createChassisPart(body, vertex1, vertex2, density) {
@@ -793,13 +789,16 @@ function cw_drawMiniMap() {
 
 
 function simulationStep() {
-  if (curGameState.simulationAlive()) {
+  if (curGameState.simulationAlive && curGameState.simulationAlive()) {
     forceSimulationStep();
   }
 }
 
 function forceSimulationStep() {
   world.Step(1/box2dfps, 20, 20);
+   if (curGameState.afterSimulationStep) {
+    curGameState.afterSimulationStep()
+  }
 }
 
 function cw_findLeader() {
@@ -957,10 +956,18 @@ function cw_init() {
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
-  carDef = cw_createRandomCar()
-  carBody = new cw_Car(carDef)
+
+    changeToGameState(gameStates.init);
+$(document.body).keydown(function(event) {
+  if (curGameState.onKeydown) {
+    curGameState.onKeydown(event)
+  };
+  return false;
+});
+
   cw_runningInterval = setInterval(simulationStep, Math.round(1000/box2dfps));
   cw_drawInterval    = setInterval(cw_drawScreen,  Math.round(1000/screenfps));
+  
 }
 
 function relMouseCoords(event){
@@ -1012,12 +1019,6 @@ minimapholder.onclick = function(event){
   }
 }
 
-changeToGameState(gameStates.init);
-$(document.body).keydown(function(event) {
-  if (curGameState.onKeydown) {
-    curGameState.onKeydown(event)
-  };
-  return false;
-});
+cw_init();
 
 
