@@ -85,6 +85,17 @@ var money = null;
 var maxMoney = null;
 var bet = null;
 var gameStates = {
+  explanation: {
+    onEnter: function() {
+      ui_showExplanation();
+    },
+    onKeydown: function(event) {
+      if (event.which == $.ui.keyCode.SPACE) {
+        ui_hideExplanation();
+          changeToGameState(gameStates.init);
+      }
+    }
+  },
   init: {
     onEnter: function() {
       money = 2000;
@@ -108,17 +119,14 @@ var gameStates = {
       var didBet = false
       if (event.which == $.ui.keyCode.LEFT) {
         bet = 'left';
-        money -= 1000;
           didBet = true
       }
       if (event.which == $.ui.keyCode.RIGHT) {
         bet = 'right';
-        money -= 500;
           didBet = true
       }
       if (event.which == $.ui.keyCode.DOWN) {
         bet = 'platform';
-        money -= 250;
           didBet = true
       }
 
@@ -155,6 +163,9 @@ var gameStates = {
           money += 500;
         }
       }
+      if (!gainedMoney) {
+        money -= 1000;
+      }
       ui_updateMoney();
       if (gainedMoney) {
         ui_effectGainMoney();
@@ -183,6 +194,17 @@ function changeToGameState(state) {
   if (state.onEnter) {
     state.onEnter()
   }
+}
+
+function ui_showExplanation() {
+  $("#explanationDialog").dialog({
+    dialogClass: 'no-close',
+    position: { my: "center", at: "center", of: canvas}
+  });
+}
+
+function ui_hideExplanation() {
+  $("#explanationDialog").dialog("close");
 }
 
 function ui_hideMoney() {
@@ -1029,7 +1051,7 @@ function cw_init() {
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
 
-    changeToGameState(gameStates.init);
+    changeToGameState(gameStates.explanation);
 $(document.body).keydown(function(event) {
   if (curGameState.onKeydown) {
     curGameState.onKeydown(event)
