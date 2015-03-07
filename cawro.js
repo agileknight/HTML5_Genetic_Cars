@@ -199,6 +199,7 @@ function changeToGameState(state) {
 function ui_showExplanation() {
   $("#explanationDialog").dialog({
     dialogClass: 'no-close',
+    width: 550,
     position: { my: "center", at: "center", of: canvas}
   });
 }
