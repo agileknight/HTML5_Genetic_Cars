@@ -115,11 +115,16 @@ var gameStates = {
       }
 
       if (didBet) {
-        changeToGameState(gameStates.init)
+        changeToGameState(gameStates.simulation)
       }
     },
     simulationAlive: function() {
       return false;
+    }
+  },
+  simulation: {
+     simulationAlive: function() {
+      return true;
     }
   }
 };
@@ -127,7 +132,9 @@ var curGameState = null;
 
 function changeToGameState(state) {
   curGameState = state
-  state.onEnter()
+  if (state.onEnter) {
+    state.onEnter()
+  }
 }
 
 function debug(str, clear) {
@@ -1007,7 +1014,9 @@ minimapholder.onclick = function(event){
 
 changeToGameState(gameStates.init);
 $(document.body).keydown(function(event) {
-  curGameState.onKeydown(event)
+  if (curGameState.onKeydown) {
+    curGameState.onKeydown(event)
+  };
   return false;
 });
 
