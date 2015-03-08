@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Random car betting core gameplay test</title>
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
     <style>
       #mainbox {
         width: 600px;
@@ -13,16 +13,16 @@
       #moneyContainer {
         font-size: 4em;
         width: 600px;
-        display: none;
       }
        #maxMoneyContainer {
         font-size: 4em;
         width: 600px;
+      }
+
+      .hidden {
         display: none;
       }
-      #explanationDialog {
-        display: none;
-      }
+
       .no-close .ui-dialog-titlebar-close {
   display: none;
 }
@@ -65,20 +65,27 @@
    }(document, 'script', 'facebook-jssdk'));
 </script>
 
-<script src="//cdn.socket.io/socket.io-1.3.5.js"></script>
-<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script src="//code.jquery.com/ui/1.11.3/jquery-ui.min.js"></script>
+<script src="http://cdn.socket.io/socket.io-1.3.5.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.3/jquery-ui.min.js"></script>
 
     <canvas id="mainbox" width="800" height="400"></canvas>
-    <div id="moneyContainer"><span id="money">amount</span>$</div>
-    <div id="maxMoneyContainer">highscore: <span id="maxMoney">amount</span>$</div>
-     <div id="explanationDialog" title="Welcome">
+    <div id="moneyContainer" class="hidden"><span id="money">amount</span>$</div>
+    <div id="maxMoneyContainer" class="hidden">highscore: <span id="maxMoney">amount</span>$</div>
+     <div id="explanationDialog" title="Welcome" class="hidden">
   <p>Hello my friend!<br/><br/>
     Last night, when you were playing poker with your friends, the gods were in your favor and you won a whopping 2000$!<br/>
     Now, after years of yearning, you can finally participate in the epic random car betting game.<br/><br/>
     For each car you bet it will fall off to the left side (press LEFT), right side (press RIGHT), or stay on the platform (press DOWN). Winning the left bet you gain 2000$, winning the right bet you gain 1000$, and the platform bet gains you 500$. Beware, betting wrong costs you 1000$. How much money can you make betting? If you run out of money the game ends.<br/>
     <br/>
     &lt;press SPACE to start&gt;</p>
+</div>
+
+<div id="joinGameDialog" title="Join game" class="hidden">
+  <form>
+    Player name:<input type="text" name="playerName"/><br/>
+    Game ID:<input type="txt" name="gameId"/><br/> (Give the game ID to your friends so they can join your game)<br/>
+  </form>
 </div>
 
 <br/>

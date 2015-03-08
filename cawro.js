@@ -86,6 +86,8 @@ var carBody = null;
 var money = null;
 var maxMoney = null;
 var bet = null;
+var playerName = null;
+var gameId = null;
 var gameStates = {
   explanation: {
     onEnter: function() {
@@ -94,8 +96,15 @@ var gameStates = {
     onKeydown: function(event) {
       if (event.which == $.ui.keyCode.SPACE) {
         ui_hideExplanation();
-          changeToGameState(gameStates.init);
+          changeToGameState(gameStates.lobby);
       }
+    }
+  },
+  lobby: {
+     onEnter: function() {
+      ui_enterPlayerNameAndGameId(function(playerName, gameId) {
+         changeToGameState(gameStates.init)
+      })
     }
   },
   init: {
@@ -239,6 +248,28 @@ function ui_effectGainMoney(effect) {
 
 function ui_effectLoseMoney(effect) {
   $("#moneyContainer").effect("highlight", {color: "#ff0000"}, 500, null).dequeue().effect("shake", {}, 500, null);
+}
+
+function ui_enterPlayerNameAndGameId(doneCallback) {
+  $("#joinGameDialog").dialog({
+    dialogClass: 'no-close',
+    width: 550,
+    position: { my: "center", at: "center", of: canvas},
+    buttons: [
+    {
+      text: "OK",
+      click: function() {
+        var playerName = $(this).find(':input[name="playerName"]').val();
+        var gameId = $(this).find(':input[name="gameId"]').val();
+        if (playerName == "" || gameId == "") {
+            return;
+        }
+        doneCallback(playerName, gameId);
+        $( this ).dialog( "close" );
+      }
+    }
+  ]
+  })
 }
 
 function debug(str, clear) {
@@ -1051,7 +1082,6 @@ function cw_toggleGhostReplay(button) {
 // initial stuff, only called once (hopefully)
 function cw_init() {
   var endpoint = window.location.protocol + "//" + window.location.hostname + ":3000";
-  alert(endpoint);
   socket = io(endpoint);
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
@@ -1061,8 +1091,9 @@ function cw_init() {
 $(document.body).keydown(function(event) {
   if (curGameState.onKeydown) {
     curGameState.onKeydown(event)
+    return false;
   };
-  return false;
+  return true;
 });
 
   cw_runningInterval = setInterval(simulationStep, Math.round(1000/box2dfps));
