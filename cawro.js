@@ -1050,7 +1050,9 @@ function cw_toggleGhostReplay(button) {
 
 // initial stuff, only called once (hopefully)
 function cw_init() {
-  socket = io('/server:3000');
+  var host = window.location.host;
+  alert(host)
+  socket = io('//philippmeier.com/prototypes/server:3000');
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
