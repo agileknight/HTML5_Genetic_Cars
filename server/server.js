@@ -10,6 +10,11 @@ function log(message, socket) {
 var gameStates = {
 	betting: {
 		onEnter: function(game) {
+			Object.keys(game.players).forEach(function(playerId) {
+				game.players[playerId].isPlaying = true;
+				game.players[playerId].readyForNextCar = false;
+			});
+
 			game.carSeed = randomstring.generate();
 			game.room.emit('new car', {seed: game.carSeed});
 		},
@@ -18,7 +23,7 @@ var gameStates = {
 			game.players[socket.id].bet = data.bet;
 			var allBet = true;
 			Object.keys(game.players).forEach(function(playerId) {
-				if (game.players[playerId] == null) {
+				if (game.players[playerId].isPlaying && game.players[playerId].bet == null) {
 					allBet = false;
 				}
 			});
@@ -28,11 +33,47 @@ var gameStates = {
 			}
 		},
 		playerJoin: function(game, socket, data) {
+			game.players[socket.id].isPlaying = true;
+			game.players[socket.id].readyForNextCar = false;
 			socket.emit('new car', {seed: game.carSeed});
+		},
+		playerLeft: function(game, socket) {
+			var allBet = true;
+			Object.keys(game.players).forEach(function(playerId) {
+				if (game.players[playerId].isPlaying && game.players[playerId].bet == null) {
+					allBet = false;
+				}
+			});
+			if (allBet) {
+				game.room.emit('start simulation', {});
+				changeToState(game, gameStates.scoring);
+			}
 		}
 	},
 	scoring: {
-		
+		readyForNextCar: function(game, socket, data) {
+			game.players[socket.id].readyForNextCar = true;
+			var allReady = true;
+			Object.keys(game.players).forEach(function(playerId) {
+				if (game.players[playerId].isPlaying && !game.players[playerId].readyForNextCar) {
+					allReady = false;
+				}
+			});
+			if (allReady) {
+				changeToState(game, gameStates.betting);
+			}
+		},
+		playerLeft: function(game, socket) {
+			var allReady = true;
+			Object.keys(game.players).forEach(function(playerId) {
+				if (game.players[playerId].isPlaying && !game.players[playerId].readyForNextCar) {
+					allReady = false;
+				}
+			});
+			if (allReady) {
+				changeToState(game, gameStates.betting);
+			}
+		}
 	},
 }
 
@@ -66,6 +107,7 @@ function joinGame(gameId, socket, data) {
 	game.players[socket.id] = {
 		name: data.playerName,
 		socket: socket,
+		isPlaying: false
 	};
 	socket.join(gameId);
 	socket.emit('game joined', {money: 2000});
@@ -84,6 +126,15 @@ function playerBet(socket, data) {
 	}
 }
 
+function readyForNextCar(socket, data) {
+	var game = gamesByClient[socket.id];
+	if (game) {
+		if (game.curState.readyForNextCar) {
+			game.curState.readyForNextCar(game, socket, data);
+		}
+	}
+}
+
 function leaveGame(socket) {
 	var game = gamesByClient[socket.id];
 	if (game) {
@@ -93,6 +144,10 @@ function leaveGame(socket) {
 		if (Object.keys(game.players).length == 0) {
 			delete games[game.id];
 			game.room.emit('closing game', {id: game.id});
+		} else {
+			if (game.curState.playerLeft) {
+				game.curState.playerLeft(game, socket);
+			}
 		}
 	}
 }
@@ -114,6 +169,9 @@ io.on('connection', function(socket){
 	});
 	socket.on('place bet', function(data) {
 		playerBet(socket, data);
+	});
+	socket.on('ready for next car', function(data) {
+		readyForNextCar(socket, data);
 	});
 });
 

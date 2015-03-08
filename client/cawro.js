@@ -118,21 +118,21 @@ var gameStates = {
   init: {
     onEnter: function() {
       maxMoney = money;
-      if (carBody) {
-        carBody.kill();
-      }
       ui_hideMoney();
       ui_updateMoney();
       ui_effectInitMoney();
-    },
-    newCar: function(data) {
-      seedCar(data.seed);
       changeToGameState(gameStates.showCar);
     }
   },
   showCar: {
     onEnter: function() {
       bet = null;
+    },
+    newCar: function(data) {
+      if (carBody) {
+        carBody.kill();
+      }
+      seedCar(data.seed);
       carBody = new cw_Car(carDef);
       forceSimulationStep();
     },
@@ -199,6 +199,7 @@ var gameStates = {
       if (money < 0) {
           changeToGameState(gameStates.end);
       } else {
+       socket.emit('ready for next car', {});
        changeToGameState(gameStates.showCar);
      }
     }
