@@ -200,7 +200,7 @@ var gameStates = {
   end: {
     onEnter: function() {
      alert("Out of money. Highscore: " + maxMoney + "$")
-     changeToGameState(gameStates.init)
+     changeToGameState(gameStates.lobby)
   }
 }
 };
