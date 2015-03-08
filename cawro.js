@@ -103,13 +103,19 @@ var gameStates = {
   lobby: {
      onEnter: function() {
       ui_enterPlayerNameAndGameId(function(playerName, gameId) {
-         changeToGameState(gameStates.init)
-      })
+        server_joinGame({
+         playerName: playerName,
+         gameId: gameId
+       });
+     });
+    },
+    gameJoined: function(data) {
+      money = data.money;
+      changeToGameState(gameStates.init);
     }
   },
   init: {
     onEnter: function() {
-      money = 2000;
       maxMoney = money;
       ui_hideMoney()
       ui_updateMoney()
@@ -205,6 +211,10 @@ function changeToGameState(state) {
   if (state.onEnter) {
     state.onEnter()
   }
+}
+
+function server_joinGame(data) {
+  socket.emit('join game', data);
 }
 
 function ui_showExplanation() {
@@ -1083,6 +1093,11 @@ function cw_toggleGhostReplay(button) {
 function cw_init() {
   var endpoint = window.location.protocol + "//" + window.location.hostname + ":3000";
   socket = io(endpoint);
+  socket.on('game joined', function(data) {
+      if(curGameState.gameJoined) {
+        curGameState.gameJoined(data);
+      }
+  })
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
