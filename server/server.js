@@ -7,7 +7,7 @@ io.on('connection', function(socket){
   	socket.on('disconnect', function(){
   		console.log('a user disconnected');
 	});
-	socket.on('join game'), function(data) {
+	socket.on('join game', function(data) {
 		socket.emit('game joined', {money: 2000});
 	});
 });
