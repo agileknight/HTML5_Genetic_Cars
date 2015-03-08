@@ -87,9 +87,13 @@ function playerBet(socket, data) {
 function leaveGame(socket) {
 	var game = gamesByClient[socket.id];
 	if (game) {
-		socket.to(game.id).emit('player left', {playerId: socket.id});
-		gamesByClient[socket.id] = null;
-		game.players[socket.id] = null;
+		game.room.emit('player left', {playerId: socket.id});
+		delete gamesByClient[socket.id];
+		delete game.players[socket.id];
+		if (Object.keys(game.players).length == 0) {
+			delete games[game.id];
+			game.room.emit('closing game', {id: game.id});
+		}
 	}
 }
 
