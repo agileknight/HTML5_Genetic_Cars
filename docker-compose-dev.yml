@@ -1,8 +1,12 @@
 web:
   image: pmeier/cars_v2_web
+  volumes:
+    - client:/opt/app/client
   ports:
     - "80:80"
 app:
   image: pmeier/cars_v2
+  volumes:
+    - server:/opt/app/server
   ports:
    - "3000:3000"

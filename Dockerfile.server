@@ -7,10 +7,12 @@ RUN \
   apt-get install -y npm && \
   rm -rf /var/lib/apt/lists/*
 
-ADD server /opt/app/server
+ADD server/package.json /opt/app/server/package.json
 
 WORKDIR /opt/app/server
 
 RUN npm install
+
+ADD server/* /opt/app/server/
 
 CMD ["nodejs", "server.js"]
