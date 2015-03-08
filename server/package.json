@@ -1,0 +1,9 @@
+{
+  "name": "random-car-betting",
+  "version": "0.0.1",
+  "description": "bacon!",
+  "dependencies": {
+    "socket.io": "~1.3.5",
+    "express": "~4.12.2"
+  }
+}
