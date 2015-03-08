@@ -79,6 +79,8 @@ var leaderPosition = new Object();
 leaderPosition.x = 0;
 leaderPosition.y = 0;
 
+var socket = null;
+
 var floorBody = null;
 var carBody = null;
 var money = null;
@@ -1048,6 +1050,7 @@ function cw_toggleGhostReplay(button) {
 
 // initial stuff, only called once (hopefully)
 function cw_init() {
+  socket = io();
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
