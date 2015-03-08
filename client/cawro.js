@@ -117,45 +117,47 @@ var gameStates = {
   init: {
     onEnter: function() {
       maxMoney = money;
-      ui_hideMoney()
-      ui_updateMoney()
-      ui_effectInitMoney()
-      changeToGameState(gameStates.showCar)
+      if (carBody) {
+        carBody.kill();
+      }
+      ui_hideMoney();
+      ui_updateMoney();
+      ui_effectInitMoney();
+    },
+    newCar: function(data) {
+      seedCar(data.seed);
+      changeToGameState(gameStates.showCar);
     }
   },
   showCar: {
     onEnter: function() {
-      if (carBody) {
-        carBody.kill()
-      }
-      carDef = cw_createRandomCar()
-      carBody = new cw_Car(carDef)
+      carBody = new cw_Car(carDef);
       forceSimulationStep();
     },
     onKeydown: function(event) {
-      var didBet = false
+      var didBet = false;
       if (event.which == $.ui.keyCode.LEFT) {
         bet = 'left';
-          didBet = true
+          didBet = true;
       }
       if (event.which == $.ui.keyCode.RIGHT) {
         bet = 'right';
-          didBet = true
+          didBet = true;
       }
       if (event.which == $.ui.keyCode.DOWN) {
         bet = 'platform';
-          didBet = true
+          didBet = true;
       }
 
       if (didBet) {
-        changeToGameState(gameStates.simulation)
+        changeToGameState(gameStates.simulation);
       }
     }
   },
   simulation: {
     afterSimulationStep: function() {
         if (carBody.checkDeath()) {
-          changeToGameState(gameStates.score)
+          changeToGameState(gameStates.score);
         }
     },
      simulationAlive: function() {
@@ -191,25 +193,32 @@ var gameStates = {
       }
       
       if (money < 0) {
-          changeToGameState(gameStates.end)
+          changeToGameState(gameStates.end);
       } else {
-       changeToGameState(gameStates.showCar)
+       changeToGameState(gameStates.showCar);
      }
     }
   },
   end: {
     onEnter: function() {
-     alert("Out of money. Highscore: " + maxMoney + "$")
-     changeToGameState(gameStates.lobby)
+     alert("Out of money. Highscore: " + maxMoney + "$");
+     changeToGameState(gameStates.lobby);
   }
 }
 };
 var curGameState = null;
 
+function seedCar(seed) {
+  var backup = Math.random;
+  Math.seedrandom(seed);
+   carDef = cw_createRandomCar();
+   Math.random = backup;
+}
+
 function changeToGameState(state) {
   curGameState = state
   if (state.onEnter) {
-    state.onEnter()
+    state.onEnter();
   }
 }
 
@@ -1097,7 +1106,12 @@ function cw_init() {
       if(curGameState.gameJoined) {
         curGameState.gameJoined(data);
       }
-  })
+  });
+  socket.on('new car', function(data) {
+    if (curGameState.newCar) {
+      curGameState.newCar(data);
+    }
+  });
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
@@ -1116,26 +1130,4 @@ $(document.body).keydown(function(event) {
   
 }
 
-function relMouseCoords(event){
-    var totalOffsetX = 0;
-    var totalOffsetY = 0;
-    var canvasX = 0;
-    var canvasY = 0;ne
-    var currentElement = this;
-
-    do{
-        totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
-        totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
-    }
-    while(currentElement = currentElement.offsetParent)
-
-    canvasX = event.pageX - totalOffsetX;
-    canvasY = event.pageY - totalOffsetY;
-
-    return {x:canvasX, y:canvasY}
-}
-HTMLDivElement.prototype.relMouseCoords = relMouseCoords;
-
 cw_init();
-
-

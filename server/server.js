@@ -15,14 +15,25 @@ var gameStates = {
 		},
 		playerBet: function(game, socket, data) {
 			socket.broadcast.to(game.id).emit('player bet', {clientId: docket.id, data: data});
+			game.players[socket.id].bet = data.bet;
+			var allBet = true;
+			Object.keys(game.players).forEach(function(playerId) {
+				if (game.players[playerId] == null) {
+					allBet = false;
+				}
+			});
+			if (allBet) {
+				game.room.emit('start simulation', {});
+				changeToState(gameStates.scoring);
+			}
+		},
+		playerJoin: function(game, socket, data) {
+			socket.emit('new car', {seed: game.carSeed});
 		}
 	},
-	simulation: {
+	scoring: {
+		
 	},
-	scoreing: {
-	},
-	end: {
-	}
 }
 
 var games = {};
@@ -59,6 +70,9 @@ function joinGame(gameId, socket, data) {
 	socket.join(gameId);
 	socket.emit('game joined', {money: 2000});
 	socket.broadcast.to(game.id).emit('player joined', {playerId: socket.id});
+	if (game.curState.playerJoin) {
+		game.curState.playerJoin(game, socket, data);
+	}
 }
 
 function playerBet(gameId, socket, data) {
