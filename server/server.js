@@ -14,7 +14,7 @@ var gameStates = {
 			game.room.emit('new car', {seed: game.carSeed});
 		},
 		playerBet: function(game, socket, data) {
-			socket.broadcast.to(game.id).emit('player bet', {clientId: docket.id, data: data});
+			socket.broadcast.to(game.id).emit('player bet', {clientId: socket.id, data: data});
 			game.players[socket.id].bet = data.bet;
 			var allBet = true;
 			Object.keys(game.players).forEach(function(playerId) {
@@ -24,7 +24,7 @@ var gameStates = {
 			});
 			if (allBet) {
 				game.room.emit('start simulation', {});
-				changeToState(gameStates.scoring);
+				changeToState(game, gameStates.scoring);
 			}
 		},
 		playerJoin: function(game, socket, data) {
@@ -75,8 +75,8 @@ function joinGame(gameId, socket, data) {
 	}
 }
 
-function playerBet(gameId, socket, data) {
-	var game = games[gameId];
+function playerBet(socket, data) {
+	var game = gamesByClient[socket.id];
 	if (game) {
 		if (game.curState.playerBet) {
 			game.curState.playerBet(game, socket, data);
@@ -109,7 +109,7 @@ io.on('connection', function(socket){
 		joinGame(data.gameId, socket, data);
 	});
 	socket.on('place bet', function(data) {
-		playerBet(data.gameId, socket, data);
+		playerBet(socket, data);
 	});
 });
 

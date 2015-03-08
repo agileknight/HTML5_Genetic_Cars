@@ -88,6 +88,7 @@ var maxMoney = null;
 var bet = null;
 var playerName = null;
 var gameId = null;
+var bet = null;
 var gameStates = {
   explanation: {
     onEnter: function() {
@@ -131,27 +132,30 @@ var gameStates = {
   },
   showCar: {
     onEnter: function() {
+      bet = null;
       carBody = new cw_Car(carDef);
       forceSimulationStep();
     },
     onKeydown: function(event) {
-      var didBet = false;
+      if (bet != null) {
+        return;
+      }
       if (event.which == $.ui.keyCode.LEFT) {
         bet = 'left';
-          didBet = true;
       }
       if (event.which == $.ui.keyCode.RIGHT) {
         bet = 'right';
-          didBet = true;
       }
       if (event.which == $.ui.keyCode.DOWN) {
         bet = 'platform';
-          didBet = true;
       }
 
-      if (didBet) {
-        changeToGameState(gameStates.simulation);
+      if (bet != null) {
+        socket.emit('place bet', {bet: bet});
       }
+    },
+    startSimulation: function(data) {
+        changeToGameState(gameStates.simulation);
     }
   },
   simulation: {
@@ -1112,6 +1116,11 @@ function cw_init() {
       curGameState.newCar(data);
     }
   });
+  socket.on('start simulation', function(data) {
+    if (curGameState.startSimulation) {
+      curGameState.startSimulation(data);
+    }
+  });
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
@@ -1124,10 +1133,9 @@ $(document.body).keydown(function(event) {
   };
   return true;
 });
-
   cw_runningInterval = setInterval(simulationStep, Math.round(1000/box2dfps));
   cw_drawInterval    = setInterval(cw_drawScreen,  Math.round(1000/screenfps));
-  
 }
 
 cw_init();
+
