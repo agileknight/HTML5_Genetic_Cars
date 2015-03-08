@@ -1,48 +1,81 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var randomstring = require("randomstring");
 
 function log(message, socket) {
 	console.log(socket.id + ': ' + message);
 }
 
 var gameStates = {
-	init: {
-		joinGame: function (game, socket, data) {
-			socket.emit('game joined', {money: 2000});
+	betting: {
+		onEnter: function(game) {
+			game.carSeed = randomstring.generate();
+			game.room.emit('new car', {seed: game.carSeed});
+		},
+		playerBet: function(game, socket, data) {
+			socket.broadcast.to(game.id).emit('player bet', {clientId: docket.id, data: data});
 		}
 	},
-	betting: {
-
-	},
 	simulation: {
-
 	},
 	scoreing: {
-
 	},
 	end: {
-
 	}
 }
 
 var games = {};
+var gamesByClient = {};
+
+function changeToState(game, state) {
+	game.curState = state;
+	if (state.onEnter) {
+		state.onEnter(game);
+	}
+}
 
 function gameExists(gameId) {
 	return games[gameId] != null;
 }
 
 function createGame(gameId) {
-	games[gameId] = {
+	var game = {
+		id: gameId,
 		players: {},
-		curState: gameStates.init
+		room: io.to(gameId)
 	};
+	games[gameId] = game;
+	changeToState(game, gameStates.betting);
 }
 
 function joinGame(gameId, socket, data) {
 	var game = games[gameId];
-	if (game.curState.joinGame) {
-		game.curState.joinGame(game, socket, data);
+	gamesByClient[socket.id] = game;
+	game.players[socket.id] = {
+		name: data.playerName,
+		socket: socket,
+	};
+	socket.join(gameId);
+	socket.emit('game joined', {money: 2000});
+	socket.broadcast.to(game.id).emit('player joined', {playerId: socket.id});
+}
+
+function playerBet(gameId, socket, data) {
+	var game = games[gameId];
+	if (game) {
+		if (game.curState.playerBet) {
+			game.curState.playerBet(game, socket, data);
+		}
+	}
+}
+
+function leaveGame(socket) {
+	var game = gamesByClient[socket.id];
+	if (game) {
+		socket.to(game.id).emit('player left', {playerId: socket.id});
+		gamesByClient[socket.id] = null;
+		game.players[socket.id] = null;
 	}
 }
 
@@ -50,6 +83,7 @@ io.on('connection', function(socket){
  	log('client connected', socket);
   	socket.on('disconnect', function(){
   		log('client disconnected', socket);
+  		leaveGame(socket);
 	});
 	socket.on('join game', function(data) {
 		log('receive join game with data ' + JSON.stringify(data), socket);
@@ -59,6 +93,9 @@ io.on('connection', function(socket){
 		}
 
 		joinGame(data.gameId, socket, data);
+	});
+	socket.on('place bet', function(data) {
+		playerBet(data.gameId, socket, data);
 	});
 });
 
