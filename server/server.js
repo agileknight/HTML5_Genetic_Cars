@@ -2,12 +2,17 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+function log(message, socket) {
+	console.log(socket.id + ': ' + message);
+}
+
 io.on('connection', function(socket){
- 	console.log('a user connected');
+ 	log('client connected', socket);
   	socket.on('disconnect', function(){
-  		console.log('a user disconnected');
+  		log('client disconnected', socket);
 	});
 	socket.on('join game', function(data) {
+		log('game joined', socket);
 		socket.emit('game joined', {money: 2000});
 	});
 });

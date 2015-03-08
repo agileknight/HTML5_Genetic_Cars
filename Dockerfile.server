@@ -7,6 +7,10 @@ RUN \
   apt-get install -y npm && \
   rm -rf /var/lib/apt/lists/*
 
+# the link is needed as nodemon uses hardcoded "node" binary
+RUN ln -s /usr/bin/nodejs /usr/local/bin/node
+RUN npm install -g nodemon
+
 ADD server/package.json /opt/app/server/package.json
 
 WORKDIR /opt/app/server
