@@ -1,4 +1,8 @@
+web:
+  image: pmeier/cars_v2_web
+  ports:
+    - "80:80"
 app:
-  build: .
+  build: pmeier/cars_v2
   ports:
    - "3000:3000"
