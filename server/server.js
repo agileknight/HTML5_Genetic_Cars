@@ -102,6 +102,15 @@ var gameStates = {
 	end: {
 		onEnter: function(game) {
 			game.room.emit('game end', {});
+			Object.keys(game.players).forEach(function(playerId) {
+				var player = game.players[playerId];
+				game.room.emit('player update', {
+					id: playerId,
+					name: player.name,
+					money: player.money
+				});
+			});
+			delete games[game.id];
 		},
 	}
 }
