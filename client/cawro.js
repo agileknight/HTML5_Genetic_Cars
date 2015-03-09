@@ -121,6 +121,7 @@ var gameStates = {
       ui_hideMoney();
       ui_updateMoney();
       ui_effectInitMoney();
+      ui_clearEventbox();
       changeToGameState(gameStates.showCar);
     }
   },
@@ -135,6 +136,9 @@ var gameStates = {
       seedCar(data.seed);
       carBody = new cw_Car(carDef);
       forceSimulationStep();
+    },
+    gameEnd: function(data) {
+      changeToGameState(gameStates.end);
     },
     onKeydown: function(event) {
       if (bet != null) {
@@ -189,6 +193,9 @@ var gameStates = {
       if (!gainedMoney) {
         money -= 1000;
       }
+       if (money < 0) {
+          money = 0;
+      }
       ui_updateMoney();
       if (gainedMoney) {
         ui_effectGainMoney();
@@ -196,17 +203,12 @@ var gameStates = {
         ui_effectLoseMoney();
       }
       
-      if (money < 0) {
-          changeToGameState(gameStates.end);
-      } else {
-       socket.emit('ready for next car', {});
-       changeToGameState(gameStates.showCar);
-     }
+      changeToGameState(gameStates.showCar);
+      socket.emit('ready for next car', {money: money});
     }
   },
   end: {
     onEnter: function() {
-     alert("Out of money. Highscore: " + maxMoney + "$");
      changeToGameState(gameStates.lobby);
   }
 }
@@ -264,6 +266,11 @@ function ui_effectInitMoney(effect) {
   var cont2 = $("#maxMoneyContainer");
   cont2.show();
   cont2.effect("slide", {}, 500, null);
+}
+
+function ui_clearEventbox() {
+  $("#eventbox").empty();
+  $("#eventbox").scrollTop(0);
 }
 
 function ui_effectGainMoney(effect) {
@@ -1103,25 +1110,58 @@ function cw_toggleGhostReplay(button) {
 }
 // ghost replay stuff END
 
+function ui_printEvent(message) {
+  $("#eventbox").append(message + "<br/>");
+  $('#eventbox').scrollTop($('#eventbox').height())
+}
+
 // initial stuff, only called once (hopefully)
 function cw_init() {
   var endpoint = window.location.protocol + "//" + window.location.hostname + ":3000";
   socket = io(endpoint);
+
   socket.on('game joined', function(data) {
       if(curGameState.gameJoined) {
         curGameState.gameJoined(data);
       }
   });
+
   socket.on('new car', function(data) {
+    ui_printEvent("Rounds left: " + data.roundsLeft);
     if (curGameState.newCar) {
       curGameState.newCar(data);
     }
   });
+
   socket.on('start simulation', function(data) {
     if (curGameState.startSimulation) {
       curGameState.startSimulation(data);
     }
   });
+  
+  socket.on('game end', function(data) {
+    ui_printEvent("Game has ended");
+    if (curGameState.gameEnd) {
+      curGameState.gameEnd(data);
+    }
+  });  
+
+  socket.on('player update', function(data) {
+    ui_printEvent(data.name + " with " + data.money + "$");
+  }); 
+
+  socket.on('player left', function(data) {
+    ui_printEvent(data.name + " left");
+  }); 
+
+  socket.on('player joined', function(data) {
+    ui_printEvent(data.name + " joined");
+  }); 
+
+  socket.on('player bet', function(data) {
+    ui_printEvent(data.name + " bet " + data.bet);
+  });  
+
   floorseed = Math.seedrandom();
   world = new b2World(gravity, doSleep);
   floorBody = cw_createFloor();
@@ -1134,6 +1174,7 @@ $(document.body).keydown(function(event) {
   };
   return true;
 });
+
   cw_runningInterval = setInterval(simulationStep, Math.round(1000/box2dfps));
   cw_drawInterval    = setInterval(cw_drawScreen,  Math.round(1000/screenfps));
 }

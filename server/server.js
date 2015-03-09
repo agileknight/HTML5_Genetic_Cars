@@ -11,15 +11,25 @@ var gameStates = {
 	betting: {
 		onEnter: function(game) {
 			Object.keys(game.players).forEach(function(playerId) {
-				game.players[playerId].isPlaying = true;
-				game.players[playerId].readyForNextCar = false;
+				var player = game.players[playerId];
+				player.isPlaying = true;
+				player.readyForNextCar = false;
+				player.bet = null;
+				game.room.emit('player update', {
+					id: playerId,
+					name: player.name,
+					money: player.money
+				});
 			});
 
 			game.carSeed = randomstring.generate();
-			game.room.emit('new car', {seed: game.carSeed});
+			game.room.emit('new car', {
+				seed: game.carSeed,
+				roundsLeft: game.roundsLeft
+			});
 		},
 		playerBet: function(game, socket, data) {
-			socket.broadcast.to(game.id).emit('player bet', {clientId: socket.id, data: data});
+			game.room.emit('player bet', {clientId: socket.id, name: game.players[socket.id].name, bet: data.bet});
 			game.players[socket.id].bet = data.bet;
 			var allBet = true;
 			Object.keys(game.players).forEach(function(playerId) {
@@ -35,7 +45,10 @@ var gameStates = {
 		playerJoin: function(game, socket, data) {
 			game.players[socket.id].isPlaying = true;
 			game.players[socket.id].readyForNextCar = false;
-			socket.emit('new car', {seed: game.carSeed});
+			socket.emit('new car', {
+				seed: game.carSeed,
+				roundsLeft: game.roundsLeft
+			});
 		},
 		playerLeft: function(game, socket) {
 			var allBet = true;
@@ -53,6 +66,7 @@ var gameStates = {
 	scoring: {
 		readyForNextCar: function(game, socket, data) {
 			game.players[socket.id].readyForNextCar = true;
+			game.players[socket.id].money = data.money;
 			var allReady = true;
 			Object.keys(game.players).forEach(function(playerId) {
 				if (game.players[playerId].isPlaying && !game.players[playerId].readyForNextCar) {
@@ -60,7 +74,12 @@ var gameStates = {
 				}
 			});
 			if (allReady) {
-				changeToState(game, gameStates.betting);
+				if (game.roundsLeft > 1) {
+					game.roundsLeft -= 1;
+					changeToState(game, gameStates.betting);
+				} else {
+					changeToState(game, gameStates.end);
+				}
 			}
 		},
 		playerLeft: function(game, socket) {
@@ -71,10 +90,20 @@ var gameStates = {
 				}
 			});
 			if (allReady) {
-				changeToState(game, gameStates.betting);
+				if (game.roundsLeft > 1) {
+					game.roundsLeft -= 1;
+					changeToState(game, gameStates.betting);
+				} else {
+					changeToState(game, gameStates.end);
+				}
 			}
 		}
 	},
+	end: {
+		onEnter: function(game) {
+			game.room.emit('game end', {});
+		},
+	}
 }
 
 var games = {};
@@ -95,7 +124,8 @@ function createGame(gameId) {
 	var game = {
 		id: gameId,
 		players: {},
-		room: io.to(gameId)
+		room: io.to(gameId),
+		roundsLeft: 10
 	};
 	games[gameId] = game;
 	changeToState(game, gameStates.betting);
@@ -111,7 +141,15 @@ function joinGame(gameId, socket, data) {
 	};
 	socket.join(gameId);
 	socket.emit('game joined', {money: 2000});
-	socket.broadcast.to(game.id).emit('player joined', {playerId: socket.id});
+	game.room.emit('player joined', {playerId: socket.id, name: data.playerName});
+
+	Object.keys(game.players).forEach(function(playerId) {
+				var player = game.players[playerId];
+				if (playerId != socket.id) {
+					socket.emit('player joined', {playerId: playerId, name: game.players[playerId].name});
+				}
+			});
+
 	if (game.curState.playerJoin) {
 		game.curState.playerJoin(game, socket, data);
 	}
@@ -138,7 +176,7 @@ function readyForNextCar(socket, data) {
 function leaveGame(socket) {
 	var game = gamesByClient[socket.id];
 	if (game) {
-		game.room.emit('player left', {playerId: socket.id});
+		game.room.emit('player left', {playerId: socket.id, name: game.players[socket.id].name});
 		delete gamesByClient[socket.id];
 		delete game.players[socket.id];
 		if (Object.keys(game.players).length == 0) {
