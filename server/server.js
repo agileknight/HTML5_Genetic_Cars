@@ -1,4 +1,7 @@
-var app = require('express')();
+var express = require('express')
+var app = express();
+var webApp = express();
+var webHttp = require('http').Server(webApp);
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var randomstring = require("randomstring");
@@ -223,5 +226,10 @@ io.on('connection', function(socket){
 });
 
 http.listen(3000, function(){
- 	console.log('listening on *:3000');
+ 	console.log('app listening on *:3000');
+});
+
+webApp.use(express.static(__dirname + '/../client'));
+webHttp.listen(80, function(){
+ 	console.log('webApp listening on *:80');
 });

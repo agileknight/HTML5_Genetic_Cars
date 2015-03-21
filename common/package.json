@@ -1,0 +1,9 @@
+{
+  "name": "random-car-betting-common",
+  "version": "0.0.1",
+  "description": "bacon!",
+  "main": "index.js",
+  "dependencies": {
+  },
+  "private": true
+}

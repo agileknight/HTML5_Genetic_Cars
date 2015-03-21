@@ -11,12 +11,20 @@ RUN \
 RUN ln -s /usr/bin/nodejs /usr/local/bin/node
 RUN npm install -g nodemon
 
+RUN npm install -g browserify
+
 ADD server/package.json /opt/app/server/package.json
+ADD common/package.json /opt/app/common/package.json
+
+RUN cd /opt/app/server && npm install
+RUN cd /opt/app/common && npm install
+
+ADD server/* /opt/app/server/
+ADD common/* /opt/app/common/
+ADD client /opt/app/client
 
 WORKDIR /opt/app/server
 
-RUN npm install
-
-ADD server/* /opt/app/server/
+RUN ./browserify.sh
 
 CMD ["nodejs", "server.js"]

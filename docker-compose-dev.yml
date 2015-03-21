@@ -1,14 +1,11 @@
-web:
-  image: pmeier/cars_v2_web
-  volumes:
-    - client:/opt/app/client
-  ports:
-    - "80:80"
 app:
   image: pmeier/cars_v2
   volumes:
+    - client:/opt/app/client
+    - common:/opt/app/common
     - server:/opt/app/server
   ports:
+    - "80:80"
     - "3000:3000"
   environment:
     DEBUG: "socket.*"
