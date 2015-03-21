@@ -21,6 +21,7 @@ RUN cd /opt/app/common && npm install
 
 ADD server/* /opt/app/server/
 ADD common/* /opt/app/common/
+ADD common/lib /opt/app/common/lib
 ADD client /opt/app/client
 
 WORKDIR /opt/app/server
