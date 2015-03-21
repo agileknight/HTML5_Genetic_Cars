@@ -9,4 +9,4 @@ app:
     - "3000:3000"
   environment:
     DEBUG: "socket.*"
-  command: nodemon server.js
+  command: ./watch.sh

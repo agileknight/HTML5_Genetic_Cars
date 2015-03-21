@@ -1,3 +1,6 @@
+var common = require('common');
+var simulation = common.simulation;
+
 // Global Vars
 var ghost;
 
@@ -133,7 +136,7 @@ var gameStates = {
       if (carBody) {
         carBody.kill();
       }
-      seedCar(data.seed);
+      carDef = simulation.seedCar(data.seed);
       carBody = new cw_Car(carDef);
       forceSimulationStep();
     },
@@ -214,13 +217,6 @@ var gameStates = {
 }
 };
 var curGameState = null;
-
-function seedCar(seed) {
-  var backup = Math.random;
-  Math.seedrandom(seed);
-   carDef = cw_createRandomCar();
-   Math.random = backup;
-}
 
 function changeToGameState(state) {
   curGameState = state

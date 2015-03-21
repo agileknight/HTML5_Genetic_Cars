@@ -1,4 +1,5 @@
 #!/bin/bash
 
 mkdir -p ./../client/browserify
-browserify -t brfs ./../common/index.js > ./../client/browserify/common.js
+browserify -t brfs -r ./../common:common -o ./../client/browserify/common.js
+echo "browserify done"

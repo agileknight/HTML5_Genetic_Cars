@@ -18,7 +18,7 @@ function seedCar(seed) {
   Math.seedrandom(seed);
   var carDef = createRandomCar();
   Math.random = backup;
-  return varDef
+  return carDef
 }
 
 function createRandomCar() {
