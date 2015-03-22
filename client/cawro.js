@@ -37,9 +37,6 @@ var mutation_range = 1;
 var gen_counter = 0;
 var nAttributes = 15;
 
-var gravity = new b2Vec2(0.0, -9.81);
-var doSleep = true;
-
 var world;
 
 var zoom = 70;
