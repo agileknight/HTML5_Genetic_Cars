@@ -65,10 +65,6 @@ var wheelMinDensity = 40;
 
 var velocityIndex = 0;
 var deathSpeed = 0.1;
-var max_car_health = box2dfps * 10;
-var car_health = max_car_health;
-
-var motorSpeed = 20;
 
 var swapPoint1 = 0;
 var swapPoint2 = 0;

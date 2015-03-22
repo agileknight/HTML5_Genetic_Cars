@@ -13,6 +13,8 @@ var chassisMinAxis = 0.1;
 var chassisMinDensity = 30;
 var chassisMaxDensity = 300;
 
+var motorSpeed = 20;
+
 var gravity = new b2Vec2(0.0, -9.81);
 var doSleep = true;
 
@@ -28,7 +30,7 @@ function newSimulation(fps) {
     },
     seedCar: function(seed) {
       var carDef = seedCar(seed);
-      var carBody = new cw_Car(carDef, world);
+      var carBody = new cw_Car(carDef, world, fps);
       return carBody;
     }
   }
@@ -112,9 +114,10 @@ cw_Car.prototype.chassis = null;
 
 cw_Car.prototype.wheels = [];
 
-cw_Car.prototype.__constructor = function(car_def, world) {
+cw_Car.prototype.__constructor = function(car_def, world, fps) {
   this.velocityIndex = 0;
-  this.health = max_car_health;
+  this.max_car_health = fps * 10;
+  this.health = this.max_car_health;
   this.maxPosition = 0;
   this.maxPositiony = 0;
   this.minPositiony = 0;
@@ -159,14 +162,6 @@ cw_Car.prototype.getPosition = function() {
   return this.chassis.GetPosition();
 }
 
-cw_Car.prototype.draw = function() {
-  drawObject(this.chassis);
-  
-  for (var i = 0; i < this.wheels.length; i++){
-    drawObject(this.wheels[i]);
-  }
-}
-
 cw_Car.prototype.kill = function() {
   this.world.DestroyBody(this.chassis);
   
@@ -183,7 +178,7 @@ cw_Car.prototype.checkDeath = function() {
     return true
   }
   if(position.x > this.maxPosition + 0.02) {
-    this.health = max_car_health;
+    this.health = this.max_car_health;
     this.maxPosition = position.x;
   } else {
     if(position.x > this.maxPosition) {
@@ -199,11 +194,11 @@ cw_Car.prototype.checkDeath = function() {
   }
 
   cw_Car.prototype.resultPosition = function() {
-    if (carBody.getPosition().y < -4.0) {
-      if (carBody.getPosition().x < -1.0) {
+    if (this.getPosition().y < -4.0) {
+      if (this.getPosition().x < -1.0) {
           return 'left';
       }
-      if (carBody.getPosition().x > 1.0) {
+      if (this.getPosition().x > 1.0) {
        return 'right';
       }
     }

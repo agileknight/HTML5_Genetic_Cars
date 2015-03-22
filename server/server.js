@@ -5,9 +5,25 @@ var webHttp = require('http').Server(webApp);
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var randomstring = require("randomstring");
+var common = require('./../common');
 
 function log(message, socket) {
 	console.log(socket.id + ': ' + message);
+}
+
+function presimulate(seed) {
+	console.time("presimulate");
+	var simulation = common.simulation(60);
+	simulation.createFloor();
+	var car = simulation.seedCar(seed);
+	simulation.step();
+	while (!car.checkDeath()) {
+		simulation.step();
+	}
+	var result =  car.resultPosition();
+	car.kill();
+	console.timeEnd("presimulate");
+	return result;
 }
 
 var gameStates = {
@@ -26,6 +42,8 @@ var gameStates = {
 			});
 
 			game.carSeed = randomstring.generate();
+			var result = presimulate(game.carSeed);
+			console.log(game.carSeed + ": " + result);
 			game.room.emit('new car', {
 				seed: game.carSeed,
 				roundsLeft: game.roundsLeft
