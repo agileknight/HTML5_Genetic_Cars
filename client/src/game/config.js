@@ -5,6 +5,7 @@ pandaConfig = {
     system: {
         width: 768,
         height: 1024,
-        scaleToFit: true
+        scaleToFit: true,
+        startScene: 'Explanation'
     }
 };
