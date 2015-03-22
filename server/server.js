@@ -11,8 +11,14 @@ function log(message, socket) {
 	console.log(socket.id + ': ' + message);
 }
 
+//+ Jonas Raoni Soares Silva
+//@ http://jsfromhell.com/array/shuffle [v1.0]
+function shuffle(o){ //v1.0
+    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
+};
+
 function presimulate(seed) {
-	console.time("presimulate");
 	var simulation = common.simulation(60);
 	simulation.createFloor();
 	var car = simulation.seedCar(seed);
@@ -22,7 +28,27 @@ function presimulate(seed) {
 	}
 	var result =  car.resultPosition();
 	car.kill();
-	console.timeEnd("presimulate");
+	return result;
+}
+
+function buildCarPool(numCars, numByResultPosition) {
+	console.time("buildCarPool");
+	var result = [];
+	var carsByResultPosition = {};
+	while (result.length < numCars) {
+		var seed = randomstring.generate();
+		var resultPosition = presimulate(seed);
+		if (!carsByResultPosition[resultPosition]) {
+				carsByResultPosition[resultPosition] = 0;
+		}
+		if (carsByResultPosition[resultPosition] < numByResultPosition[resultPosition]) {
+			result.push(seed);
+			carsByResultPosition[resultPosition]+= 1;
+			console.log("adding car with result position: " + resultPosition);
+		}
+	}
+	shuffle(result);
+	console.timeEnd("buildCarPool");
 	return result;
 }
 
@@ -41,9 +67,7 @@ var gameStates = {
 				});
 			});
 
-			game.carSeed = randomstring.generate();
-			var result = presimulate(game.carSeed);
-			console.log(game.carSeed + ": " + result);
+			game.carSeed = game.carPool.pop();
 			game.room.emit('new car', {
 				seed: game.carSeed,
 				roundsLeft: game.roundsLeft
@@ -155,7 +179,12 @@ function createGame(gameId) {
 		id: gameId,
 		players: {},
 		room: io.to(gameId),
-		roundsLeft: 10
+		roundsLeft: 10,
+		carPool: buildCarPool(10, {
+			left: 2,
+			right: 4,
+			platform: 4
+		})
 	};
 	games[gameId] = game;
 	changeToState(game, gameStates.betting);
