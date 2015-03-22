@@ -109,10 +109,12 @@ var gameStates = {
          playerName: playerName,
          gameId: gameId
        });
+      ui_showBuildingCarPool();
      });
     },
     gameJoined: function(data) {
       money = data.money;
+      ui_hideBuildingCarPool();
       changeToGameState(gameStates.init);
     }
   },
@@ -294,6 +296,18 @@ function ui_enterPlayerNameAndGameId(doneCallback) {
     }
   ]
   })
+}
+
+function ui_showBuildingCarPool() {
+  $("#buildingCarPoolDialog").dialog({
+    dialogClass: 'no-close',
+    width: 550,
+    position: { my: "center", at: "center", of: canvas}
+  });
+}
+
+function ui_hideBuildingCarPool() {
+  $("#buildingCarPoolDialog").dialog("close");
 }
 
 /* ========================================================================= */
