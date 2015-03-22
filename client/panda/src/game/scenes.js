@@ -22,7 +22,10 @@ game.createScene('Main', {
         if (key === 'SPACE') {
             game.system.setScene('Other');
         }
-    }
+    },
+    mousedown: function() {
+    	game.system.setScene('Other');
+	}
 });
 
 game.createScene('Other', {
@@ -36,6 +39,9 @@ game.createScene('Other', {
         if (key === 'SPACE') {
             game.system.setScene('Main');
         }
+    },
+    mousedown: function() {
+    	game.system.setScene('Main');
     }
 });
 
