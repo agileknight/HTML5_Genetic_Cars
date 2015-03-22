@@ -179,21 +179,21 @@ var gameStates = {
   score: {
      onEnter: function() {
       var gainedMoney = false;
-      if (carBody.getPosition().y < -4.0) {
-        if (carBody.getPosition().x < -1.0 && bet == 'left') {
-          gainedMoney = true;
-            money += 2000;
-        }
-        if (carBody.getPosition().x > 1.0 && bet == 'right') {
-          gainedMoney = true;
-            money += 1000;
-        }
-      } else {
-        if (bet == 'platform') {
-          gainedMoney = true;
-          money += 500;
-        }
+      var resultPosition = carBody.resultPosition();
+      if (resultPosition == 'left' && bet == 'left') {
+       gainedMoney = true;
+         money += 2000;
+       }
+     if (resultPosition == 'right' && bet == 'right') {         
+      gainedMoney = true;
+       money += 1000;
+     }
+     
+     if (resultPosition == 'platform' && bet == 'platform') {
+        gainedMoney = true;  
+        money += 500;
       }
+
       if (!gainedMoney) {
         money -= 1000;
       }

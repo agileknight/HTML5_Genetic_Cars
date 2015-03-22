@@ -198,7 +198,17 @@ cw_Car.prototype.checkDeath = function() {
     }
   }
 
-  return false
+  cw_Car.prototype.resultPosition = function() {
+    if (carBody.getPosition().y < -4.0) {
+      if (carBody.getPosition().x < -1.0) {
+          return 'left';
+      }
+      if (carBody.getPosition().x > 1.0) {
+       return 'right';
+      }
+    }
+    return 'platform';
+  }
 }
 
 function cw_createChassisPart(body, vertex1, vertex2, density) {
