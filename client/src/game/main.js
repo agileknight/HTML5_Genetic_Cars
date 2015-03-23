@@ -52,8 +52,9 @@ game.module(
     //ui_printEvent(data.name + " bet " + data.bet);
   });
 
-// TODO move to correct scene
-  // floorBody = simulation.createFloor();
+  var common = require('common');
+  game.simulation = common.simulation(60);
+  game.floorBody = game.simulation.createFloor();
 
 
   // TODO add timer trigger to simulation scene

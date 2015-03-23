@@ -2,6 +2,19 @@ game.module(
 	'game.scenes'
 )
 .body(function() {
+
+function simulationStep() {
+  if (game.scene.simulationAlive && game.scene.simulationAlive()) {
+    forceSimulationStep();
+  }
+}
+
+function forceSimulationStep() {
+  game.simulation.step();
+   if (game.scene.afterSimulationStep) {
+    game.scene.afterSimulationStep()
+  }
+}
 	
 game.createScene('Explanation', {
 	backgroundColor: 0xffffff,
@@ -11,11 +24,11 @@ game.createScene('Explanation', {
     keydown: function(key) {
         if (key === 'SPACE') {
             // ui_hideExplanation();
-            game.system.setScene('Lobby');
+            game.system.setSceneNow(game['SceneLobby']);
         }
     },
     mousedown: function() {
-    	game.system.setScene('Lobby');
+    	game.system.setSceneNow(game['SceneLobby']);
 	}
 });
 
@@ -39,25 +52,26 @@ game.createScene('Lobby', {
       // ui_hideBuildingCarPool();
       console.log("game joined");
       game.maxMoney = game.money;
-      game.system.setScene('ShowCar');
+      game.system.setSceneNow(game['SceneShowCar']);
     }
 });
 
 game.createScene('ShowCar', {
     backgroundColor: 0xffffff,
     init: function() {
-         console.log("game initialized");
        game.bet = null;
+       this.clear();
     },
     newCar: function(data) {
       if (game.carBody) {
         game.carBody.kill();
       }
-      game.carBody = simulation.seedCar(data.seed);
+      game.carBody = game.simulation.seedCar(data.seed);
       forceSimulationStep();
+      this.addObject(new game.UserSimulation(game.floorBody, game.carBody));
     },
     gameEnd: function(data) {
-       game.system.setScene('Lobby');
+       game.system.setSceneNow(game['SceneLobby']);
     },
     keydown: function(key) {
       if (game.bet != null) {
@@ -78,47 +92,53 @@ game.createScene('ShowCar', {
       }
     },
     startSimulation: function(data) {
-        game.system.setScene('Simulation');
+        game.system.setSceneNow(game['SceneSimulation']);
     }
 });
 
 game.createScene('Simulation', {
     backgroundColor: 0xffffff,
+    init: function() {
+      this.clear();
+      this.addObject(new game.UserSimulation(game.floorBody, game.carBody));
+       this.addTimer(1000/60, function() {
+            forceSimulationStep();
+        }, true);
+       
+    },
     afterSimulationStep: function() {
         if (game.carBody.checkDeath()) {
+          var gainedMoney = false;
+          var resultPosition = game.carBody.resultPosition();
+          if (resultPosition == 'left' && game.bet == 'left') {
+           gainedMoney = true;
+             game.money += 2000;
+           }
+         if (resultPosition == 'right' && game.bet == 'right') {         
+          gainedMoney = true;
+           game.money += 1000;
+         }
+         
+         if (resultPosition == 'platform' && game.bet == 'platform') {
+            gainedMoney = true;  
+            game.money += 500;
+          }
 
+          if (!gainedMoney) {
+            game.money -= 1000;
+          }
+           if (game.money < 0) {
+              game.money = 0;
+          }
+          // ui_updateMoney();
+          if (gainedMoney) {
+            // ui_effectGainMoney();
+          } else {
+            // ui_effectLoseMoney();
+          }
 
-   var gainedMoney = false;
-      var resultPosition = game.carBody.resultPosition();
-      if (resultPosition == 'left' && bet == 'left') {
-       gainedMoney = true;
-         game.money += 2000;
-       }
-     if (resultPosition == 'right' && bet == 'right') {         
-      gainedMoney = true;
-       game.money += 1000;
-     }
-     
-     if (resultPosition == 'platform' && bet == 'platform') {
-        gainedMoney = true;  
-        game.money += 500;
-      }
-
-      if (!gainedMoney) {
-        game.money -= 1000;
-      }
-       if (money < 0) {
-          game.money = 0;
-      }
-      // ui_updateMoney();
-      if (gainedMoney) {
-        // ui_effectGainMoney();
-      } else {
-        // ui_effectLoseMoney();
-      }
-
-      socket.emit('ready for next car', {money: game.money});
-          game.system.setScene('ShowCar');
+          game.socket.emit('ready for next car', {money: game.money});
+          game.system.setSceneNow(game['SceneShowCar']);
         }
     },
      simulationAlive: function() {
