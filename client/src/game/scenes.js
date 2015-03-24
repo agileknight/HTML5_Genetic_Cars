@@ -68,7 +68,7 @@ game.createScene('ShowCar', {
       }
       game.carBody = game.simulation.seedCar(data.seed);
       forceSimulationStep();
-      this.addObject(new game.UserSimulation(game.floorBody, game.carBody));
+      this.addObject(new game.UserSimulation());
     },
     gameEnd: function(data) {
        game.system.setSceneNow(game['SceneLobby']);
@@ -100,11 +100,15 @@ game.createScene('Simulation', {
     backgroundColor: 0xffffff,
     init: function() {
       this.clear();
-      this.addObject(new game.UserSimulation(game.floorBody, game.carBody));
-       this.addTimer(1000/60, function() {
-            forceSimulationStep();
-        }, true);
-       
+      this.addObject(new game.UserSimulation());
+      this.world = {
+        accumulator: 0,
+        stepSize: 1000/60,
+        update: function() {
+
+          forceSimulationStep();
+        }
+      }      
     },
     afterSimulationStep: function() {
         if (game.carBody.checkDeath()) {
