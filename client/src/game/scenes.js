@@ -103,10 +103,13 @@ game.createScene('Simulation', {
       this.addObject(new game.UserSimulation());
       this.world = {
         accumulator: 0,
-        stepSize: 1000/60,
+        stepSize: 1/60,
         update: function() {
-
-          forceSimulationStep();
+          this.accumulator += game.system.delta;
+          if (this.accumulator > this.stepSize) {
+            this.accumulator-= this.stepSize;
+            forceSimulationStep(); 
+          } 
         }
       }      
     },
