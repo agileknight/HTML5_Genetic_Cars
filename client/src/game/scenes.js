@@ -91,6 +91,24 @@ game.createScene('ShowCar', {
         game.socket.emit('place bet', {bet: game.bet});
       }
     },
+    swipe: function(direction) {
+      if (game.bet != null) {
+        return;
+      }
+      if (direction == 'left') {
+        game.bet = 'left';
+      }
+      if (direction == 'right') {
+        game.bet = 'right';
+      }
+      if (direction == 'down') {
+        game.bet = 'platform';
+      }
+
+      if (game.bet != null) {
+        game.socket.emit('place bet', {bet: game.bet});
+      }
+    },
     startSimulation: function(data) {
         game.system.setSceneNow(game['SceneSimulation']);
     }
