@@ -124,7 +124,7 @@ game.createScene('Simulation', {
         stepSize: 1/60,
         update: function() {
           this.accumulator += game.system.delta;
-          if (this.accumulator > this.stepSize) {
+          while (this.accumulator > this.stepSize) {
             this.accumulator-= this.stepSize;
             forceSimulationStep(); 
           } 

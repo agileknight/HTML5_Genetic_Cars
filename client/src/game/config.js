@@ -6,6 +6,7 @@ pandaConfig = {
         width: 768,
         height: 1024,
         scaleToFit: true,
+        // webGL: true,
         startScene: 'Explanation'
     }
 };
